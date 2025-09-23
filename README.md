@@ -8,7 +8,7 @@ This is my personal portfolio website built with HTML, CSS, and JavaScript.
 - Simple and clean UI
 
 ## 🌐 Live Demo
-[Click here](https://FlareSome.github.io/PortFolio/)
+[Click here](https://github.com/FlareSome/PortFolio)
 
 ## 🛠️ How to run locally
 1. Clone this repo
