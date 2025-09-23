@@ -1,6 +1,15 @@
-# Porfolio
+# Portfolio Website
 
-## Description
+This is my personal portfolio website built with HTML, CSS, and JavaScript.
 
-1. WELCOME!!
-2. Practicing Branching
+## 🚀 Features
+- Responsive design
+- About, Projects, and Contact sections
+- Simple and clean UI
+
+## 🌐 Live Demo
+[Click here](https://yourusername.github.io/Portfolio/)
+
+## 🛠️ How to run locally
+1. Clone this repo
+2. Open `index.html` in your browser
