@@ -1,109 +1,75 @@
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-/* General */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
 body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-  background: #f9f9f9;
-  color: #333;
+    font-family: 'Inter', sans-serif;
+    background-color: #111827; /* Dark background */
+    color: #E5E7EB; /* Light text */
 }
-
-/* Navbar */
-header {
-  background: #222;
-  padding: 1rem;
+/* Custom CSS for the introductory animation and smooth scrolling */
+#intro-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #1F2937; /* Slightly lighter dark background */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 1;
+    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
 }
-header nav {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.intro-hidden {
+    opacity: 0 !important;
+    transform: translateY(-100%);
 }
-header h1 {
-  color: #fff;
+.loader-bar {
+    width: 80px;
+    height: 4px;
+    background-color: #4B5563;
+    border-radius: 9999px;
+    overflow: hidden;
 }
-header ul {
-  list-style: none;
-  display: flex;
+.loader-progress {
+    height: 100%;
+    width: 0%;
+    background-color: #3B82F6; /* Blue accent */
+    animation: loading 2s infinite;
 }
-header ul li {
-  margin-left: 1rem;
+@keyframes loading {
+    0% { width: 0%; transform: translateX(-100%); }
+    50% { width: 100%; transform: translateX(0%); }
+    100% { width: 0%; transform: translateX(100%); }
 }
-header ul li a {
-  color: #fff;
-  text-decoration: none;
+/* Smooth scroll for navigation */
+html {
+    scroll-behavior: smooth;
 }
-
-/* Hero */
-.hero {
-  text-align: center;
-  padding: 4rem 2rem;
-  background: linear-gradient(135deg, #6a11cb, #2575fc);
-  color: #fff;
+/* General smooth transitions for interactive elements */
+.transition-colors-shadow {
+    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
-.hero .profile-pic {
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  margin-bottom: 1rem;
-}
-.hero .btn {
-  display: inline-block;
-  margin-top: 1rem;
-  padding: 0.7rem 1.2rem;
-  background: #fff;
-  color: #2575fc;
-  border-radius: 5px;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-/* Sections */
-section {
-  padding: 3rem 2rem;
-  max-width: 900px;
-  margin: auto;
-}
-h2 {
-  margin-bottom: 1rem;
-  color: #2575fc;
-}
-
-/* Projects */
-.projects-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
+/* Project card animation */
 .project-card {
-  background: #fff;
-  padding: 1rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 }
-.project-card img {
-  width: 100%;
-  border-radius: 5px;
-  margin-bottom: 1rem;
+.project-card.is-visible {
+    opacity: 1;
+    transform: translateY(0);
 }
-.project-card a {
-  display: inline-block;
-  margin-top: 0.5rem;
-  color: #2575fc;
-  font-weight: bold;
-  text-decoration: none;
+.nav-link:hover {
+    color: #3B82F6;
 }
 
-/* Footer */
-footer {
-  text-align: center;
-  padding: 1rem;
-  background: #222;
-  color: #fff;
-  margin-top: 2rem;
+/* Class to hide the header (used by JavaScript) */
+.header-hidden {
+    transform: translateY(-100%);
+}
+
+/* Canvas specific styles */
+#ballAnimationCanvas {
+    pointer-events: none;
 }

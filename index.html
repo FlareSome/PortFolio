@@ -1,73 +1,222 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your Name | Portfolio</title>
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ashif Anowar | Portfolio</title>
+    <!-- Load Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Three.js CDN for 3D animation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Navbar -->
-  <header>
-    <nav>
-      <h1>Ashif Anowar</h1>
-      <ul>
-        <li><a href="#about">About</a></li>
-        <li><a href="#projects">Projects</a></li>
-        <li><a href="#contact">Contact</a></li>
-      </ul>
-    </nav>
-  </header>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <img src="Profile1.png" alt="Profile picture" class="profile-pic" />
-    <h2>Hello, I’m <span>Ashif Anowar</span></h2>
-    <p>Aspiring Developer | Engineer | Creator</p>
-    <a href="#projects" class="btn">View My Work</a>
-  </section>
-
-  <!-- About -->
-  <section id="about">
-    <h2>About Me</h2>
-    <p>
-      I’m a developer passionate about building web apps, solving problems,
-      and learning new technologies. Here’s a little about me.
-    </p>
-  </section>
-
-  <!-- Projects -->
-  <section id="projects">
-    <h2>Projects</h2>
-    <div class="projects-container">
-      <div class="project-card">
-        <img src="assets/project1.png" alt="Project 1" />
-        <h3>Project One</h3>
-        <p>Short description of your project goes here.</p>
-        <a href="#" target="_blank">View Project</a>
-      </div>
-      <div class="project-card">
-        <img src="assets/project2.png" alt="Project 2" />
-        <h3>Project Two</h3>
-        <p>Another project description here.</p>
-        <a href="#" target="_blank">View Project</a>
-      </div>
+    <!-- 1. Introductory Loader Animation -->
+    <div id="intro-loader">
+        <h1 class="text-3xl font-bold text-white mb-4 animate-pulse">Loading Portfolio...</h1>
+        <div class="loader-bar">
+            <div class="loader-progress"></div>
+        </div>
+        <p class="mt-4 text-gray-400 text-sm">Experience the future of digital craft.</p>
     </div>
-  </section>
 
-  <!-- Contact -->
-  <section id="contact">
-    <h2>Contact</h2>
-    <p>Email: <a href="mailto:anowar.ashif0802@gmail.com">anowar.ashif0802@gmail.com</a></p>
-    <p>GitHub: <a href="https://github.com/FlareSome" target="_blank">github.com/FlareSome</a></p>
-    <p>LinkedIn: <a href="https://linkedin.com/in/ashif-anowar-526749379?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank">linkedin.com/in/ashif-anowar</a></p>
-  </section>
+    <!-- 2. Main Application Container: pt-12 for tight spacing below the fixed header -->
+    <div id="app-container" class="min-h-screen pt-12" style="opacity:0; transition: opacity 1s;">
 
-  <!-- Footer -->
-  <footer>
-    <p>© 2025 Ashif Anowar. Built with ❤️</p>
-  </footer>
+        <!-- Header/Navigation: Reverted styles, added transition-transform and id -->
+        <header id="main-header" class="fixed top-0 left-0 right-0 bg-gray-900 bg-opacity-95 backdrop-blur-sm shadow-lg z-50 transition-transform duration-300">
+            <!-- Nav: Reverted vertical padding to py-4 -->
+            <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                <a href="#hero" class="text-2xl font-extrabold text-blue-400 hover:text-blue-300 transition-colors">A. Anowar</a>
+                <div class="space-x-8 hidden md:flex">
+                    <a href="#about" class="nav-link text-gray-300 transition-colors-shadow">About</a>
+                    <a href="#skills" class="nav-link text-gray-300 transition-colors-shadow">Skills</a>
+                    <a href="#portfolio" class="nav-link text-gray-300 transition-colors-shadow">Portfolio</a>
+                    <a href="#contact" class="nav-link text-gray-300 transition-colors-shadow">Contact</a>
+                </div>
+                <button class="md:hidden text-gray-300 p-2 rounded-md hover:bg-gray-700 transition-colors">
+                    <!-- Hamburger Icon -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </nav>
+        </header>
 
-  <script src="script.js"></script>
+        <!-- Main content uses space-y-16 and py-16 for section spacing -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16 py-16">
+
+            <!-- 3. Hero Section -->
+            <section id="hero" class="min-h-[calc(100vh-64px)] flex items-center justify-center">
+                <!-- Outer container to center content horizontally -->
+                <div class="max-w-6xl w-full mx-auto space-y-6">
+
+                    <!-- The main title/sphere row - using flex to align items and center the pair -->
+                    <div class="flex flex-col md:flex-row items-center justify-center">
+
+                        <!-- 1. Text Content Block (Left side on desktop) -->
+                        <div class="text-center md:text-right max-w-xl md:order-1 order-2">
+                            <p class="text-3xl text-blue-400 font-semibold transform translate-y-[-10px] opacity-0" id="hero-subtitle">Hello, I'm Ashif.</p>
+                            <h1 class="text-6xl sm:text-7xl lg:text-8xl font-black leading-tight text-white transform translate-x-[-20px] opacity-0 mt-4" id="hero-title">
+                                Full Stack <span class="text-blue-500">Developer</span> & Sofware <span class="text-blue-500">Engineer</span>
+                            </h1>
+                        </div>
+
+                        <!-- 2. Sphere (Canvas) (Right side on desktop) -->
+                        <canvas id="ballAnimationCanvas" width="250" height="250" class="flex-shrink-0 md:ml-16 mt-8 md:mt-0 md:order-2 order-1"></canvas>
+
+                    </div>
+
+                    <!-- Paragraph and button - centered below the title/sphere row -->
+                    <div class="text-center">
+                        <p class="text-lg text-gray-400 max-w-2xl mx-auto transform translate-y-[10px] opacity-0" id="hero-paragraph">
+                            I build responsive, highly scalable, and aesthetically pleasing web applications using modern JavaScript frameworks and robust backend technologies. Let's create something impactful.
+                        </p>
+                        <a href="#portfolio" class="inline-block px-8 py-3 mt-8 text-lg font-medium text-white bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 transition-colors-shadow transform scale-95 opacity-0" id="hero-button">
+                            View My Work &rarr;
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. About Section - Reduced padding to py-12 -->
+            <section id="about" class="py-12">
+                <h2 class="text-4xl font-bold mb-10 text-center text-white">About Me</h2>
+                <div class="grid md:grid-cols-2 gap-12 items-start bg-gray-800 p-8 rounded-xl shadow-2xl transition-all duration-500 hover:shadow-blue-900/50">
+                    <div class="space-y-6">
+                        <h3 class="text-2xl font-semibold text-blue-400">My Philosophy</h3>
+                        <p class="text-gray-300 leading-relaxed">
+                            For the past 7 years, I've been transforming complex problems into elegant digital solutions. My approach is centered on user experience, performance, and maintainable code architecture. I thrive in environments where continuous learning and collaboration are paramount.
+                        </p>
+                        <p class="text-gray-300 leading-relaxed">
+                            My expertise spans from front-end pixel perfection in **React** and **Vue** to robust API design using **Node.js** and **Go**. I am a strong advocate for serverless architectures and efficient database modeling with **PostgreSQL** and **Firestore**.
+                        </p>
+                    </div>
+                    <div class="space-y-4">
+                        <h3 class="text-2xl font-semibold text-blue-400">Key Focus Areas</h3>
+                        <ul class="space-y-3 text-gray-300">
+                            <li class="flex items-center">
+                                <span class="text-blue-500 mr-3">&diams;</span> Scalable Cloud Infrastructure (AWS/GCP)
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-500 mr-3">&diams;</span> Modern UI/UX Design & Implementation
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-500 mr-3">&diams;</span> Automated Testing & CI/CD Pipelines
+                            </li>
+                            <li class="flex items-center">
+                                <span class="text-blue-500 mr-3">&diams;</span> Technical Leadership & Mentoring
+                            </li>
+                        </ul>
+                        <a href="#" class="inline-block mt-4 text-blue-400 hover:text-blue-300 font-medium transition-colors">
+                            Download Resume (PDF) &rarr;
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. Skills Section - Reduced padding to py-12 -->
+            <section id="skills" class="py-12">
+                <h2 class="text-4xl font-bold mb-10 -center text-white">Technical Skills</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">React & Next.js</p>
+                        <p class="text-sm text-gray-400 mt-1">Frontend Frameworks</p>
+                    </div>
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">Node.js & Express</p>
+                        <p class="text-sm text-gray-400 mt-1">Backend Runtime</p>
+                    </div>
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">TypeScript</p>
+                        <p class="text-sm text-gray-400 mt-1">Type Safety & Modern JS</p>
+                    </div>
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">Tailwind CSS</p>
+                        <p class="text-sm text-gray-400 mt-1">Utility-First Styling</p>
+                    </div>
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">GCP & AWS</p>
+                        <p class="text-sm text-gray-400 mt-1">Cloud Services</p>
+                    </div>
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">PostgreSQL</p>
+                        <p class="text-sm text-gray-400 mt-1">Relational Databases</p>
+                    </div>
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">Git/GitHub</p>
+                        <p class="text-sm text-gray-400 mt-1">Version Control</p>
+                    </div>
+                    <div class="skill-card bg-gray-800 p-6 rounded-lg shadow-xl text-center hover:bg-blue-600/20 hover:shadow-blue-500/50 transition-colors-shadow transform hover:scale-[1.03] duration-300">
+                        <p class="text-2xl font-bold text-blue-400">CI/CD</p>
+                        <p class="text-sm text-gray-400 mt-1">DevOps & Automation</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. Portfolio Section with Pagination - Reduced padding to py-12 -->
+            <section id="portfolio" class="py-12">
+                <h2 class="text-4xl font-bold mb-10 text-center text-white">Recent Projects</h2>
+
+                <!-- Project Grid Container (Dynamic Content) -->
+                <div id="projects-grid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Projects will be injected here by JavaScript -->
+                </div>
+
+                <!-- Pagination Controls -->
+                <div id="pagination-controls" class="flex justify-center items-center mt-12 space-x-4">
+                    <button id="prev-btn" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-800 disabled:text-gray-500 transition-colors-shadow" disabled>
+                        &larr; Previous
+                    </button>
+                    <div id="page-info" class="text-gray-400">Page 1 of 3</div>
+                    <button id="next-btn" class="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-blue-600 disabled:bg-gray-800 disabled:text-gray-500 transition-colors-shadow">
+                        Next &rarr;
+                    </button>
+                </div>
+            </section>
+
+            <!-- 7. Contact Section - Reduced padding to py-12 -->
+            <section id="contact" class="py-12">
+                <h2 class="text-4xl font-bold mb-10 text-center text-white">Get In Touch</h2>
+                <div class="max-w-xl mx-auto bg-gray-800 p-8 rounded-xl shadow-2xl">
+                    <form class="space-y-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                            <input type="text" id="name" name="name" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Your Full Name">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+                            <input type="email" id="email" name="email" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="your.email@example.com">
+                        </div>
+                        <div>
+                            <label for="message" class="block text-sm font-medium text-gray-300 mb-1">Message</label>
+                            <textarea id="message" name="message" rows="5" class="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white focus:ring-blue-500 focus:border-blue-500 transition-colors" placeholder="Tell me about your project or idea..."></textarea>
+                        </div>
+                        <button type="submit" class="w-full px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 transition-colors-shadow transform hover:scale-[1.01]">
+                            Send Message
+                        </button>
+                    </form>
+                    <div id="contact-message" class="mt-4 text-center text-green-400 hidden">Thank you for your message! I will be in touch shortly.</div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-900 mt-16 py-8">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+                <p>&copy; <span id="current-year"></span> Ashif Anowar. All rights reserved.</p>
+                <div class="mt-4 space-x-4">
+                    <a href="https://linkedin.com/in/ashif-anowar-526749379" class="text-gray-400 hover:text-blue-500 transition-colors">LinkedIn</a>
+                    <a href="https://github.com/FlareSome" class="text-gray-400 hover:text-blue-500 transition-colors">GitHub</a>
+                    <a href="2ashif.anowar07@gmai.com" class="text-gray-400 hover:text-blue-500 transition-colors">Email</a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Link to the external JavaScript file -->
+    <script src="script.js"></script>
 </body>
 </html>
