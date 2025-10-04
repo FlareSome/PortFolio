@@ -1,9 +1,42 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+/* --- Define Color Variables (Dark Mode Default) --- */
+:root {
+    --color-bg: #111827;
+    --color-bg-secondary: #1F2937; /* Used for Header/Cards/Footer */
+    --color-text: #E5E7EB;
+    --color-text-secondary: #9CA3AF; /* Gray-400 */
+    --color-accent: #3B82F6; /* Blue Accent */
+    --color-accent-rgb: 59, 130, 246; /* RGB for hover effects */
+    --color-card-shadow: rgba(59, 130, 246, 0.2);
+    --color-input-bg: #374151; /* Gray-700 */
+    --color-input-border: #4B5563; /* Gray-600 */
+    --color-button-hover-bg: #2563EB; /* Blue-700 */
+    --three-js-color: 0x3B82F6; /* Default Blue Hex for Three.js (used in script.js) */
+}
+
+/* --- Light Mode Overrides --- */
+body[data-theme='light'] {
+    --color-bg: #FFFFFF;
+    --color-bg-secondary: #F3F4F6; /* Off-white for Header/Cards/Footer */
+    --color-text: #1F2937;
+    --color-text-secondary: #6B7280; /* Gray-600 */
+    --color-accent: #EF4444; /* Red/Fire Accent */
+    --color-accent-rgb: 239, 68, 68;
+    --color-card-shadow: rgba(239, 68, 68, 0.15);
+    --color-input-bg: #FFFFFF;
+    --color-input-border: #D1D5DB; /* Gray-300 */
+    --color-button-hover-bg: #DC2626; /* Red-700 */
+    --three-js-color: 0xEF4444; /* Light Red Hex for Three.js (used in script.js) */
+}
+
 body {
     font-family: 'Inter', sans-serif;
-    background-color: #111827; /* Dark background */
-    color: #E5E7EB; /* Light text */
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: background-color 0.5s, color 0.5s; /* Smooth theme transition */
 }
+
 /* Custom CSS for the introductory animation and smooth scrolling */
 #intro-loader {
     position: fixed;
@@ -11,14 +44,14 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: #1F2937; /* Slightly lighter dark background */
+    background-color: var(--color-bg-secondary);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     z-index: 1000;
     opacity: 1;
-    transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+    transition: opacity 1s ease-in-out, transform 1s ease-in-out, background-color 0.5s;
 }
 .intro-hidden {
     opacity: 0 !important;
@@ -34,7 +67,7 @@ body {
 .loader-progress {
     height: 100%;
     width: 0%;
-    background-color: #3B82F6; /* Blue accent */
+    background-color: var(--color-accent);
     animation: loading 2s infinite;
 }
 @keyframes loading {
@@ -42,15 +75,13 @@ body {
     50% { width: 100%; transform: translateX(0%); }
     100% { width: 0%; transform: translateX(100%); }
 }
-/* Smooth scroll for navigation */
+
 html {
     scroll-behavior: smooth;
 }
-/* General smooth transitions for interactive elements */
 .transition-colors-shadow {
     transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
-/* Project card animation */
 .project-card {
     opacity: 0;
     transform: translateY(20px);
@@ -61,15 +92,35 @@ html {
     transform: translateY(0);
 }
 .nav-link:hover {
-    color: #3B82F6;
+    color: var(--color-accent);
 }
 
-/* Class to hide the header (used by JavaScript) */
 .header-hidden {
     transform: translateY(-100%);
 }
 
-/* Canvas specific styles */
 #ballAnimationCanvas {
     pointer-events: none;
+    transition: filter 0.5s ease;
+}
+
+/* Theme Toggle Button Style */
+#theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text);
+    transition: color 0.3s, background-color 0.3s;
+    border-radius: 50%;
+}
+#theme-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+body[data-theme='light'] #theme-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }

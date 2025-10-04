@@ -28,6 +28,85 @@ const prevBtn = document.getElementById('prev-btn');
 const nextBtn = document.getElementById('next-btn');
 const pageInfo = document.getElementById('page-info');
 const mainHeader = document.getElementById('main-header');
+const themeToggleBtn = document.getElementById('theme-toggle'); // New DOM element
+
+// --- Theme Management Functions ---
+
+/**
+ * Reads the --three-js-color CSS variable and converts it to a Three.js compatible hex number.
+ * @returns {number} The hex color code.
+ */
+function getThreeJsColorHex() {
+    // Get the computed value of the CSS variable
+    const colorStr = getComputedStyle(document.body).getPropertyValue('--three-js-color').trim();
+    // The variable is stored as '0xRRGGBB', so we need to parse it.
+    if (colorStr.startsWith('0x')) {
+        return parseInt(colorStr, 16);
+    }
+    // Fallback to blue if something goes wrong
+    return 0x3B82F6;
+}
+
+/**
+ * Updates the color of the 3D sphere to match the current theme.
+ */
+function updateBallColor() {
+    // Check if THREE objects have been initialized
+    if (typeof THREE === 'undefined' || !ballMesh || !particleSystem) return;
+
+    const newColor = getThreeJsColorHex();
+
+    // Update shell (wireframe) color
+    if (ballMesh.material.color) {
+        // NOTE: Setting material needs to happen on the main thread
+        ballMesh.material.color.setHex(newColor);
+    }
+
+    // Update particle system color
+    if (particleSystem.material.color) {
+        particleSystem.material.color.setHex(newColor);
+    }
+}
+
+/**
+ * Toggles the website theme between 'dark' and 'light'.
+ */
+function toggleTheme() {
+    const currentTheme = document.body.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    document.body.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme); // Save preference
+
+    updateBallColor(); // Update the 3D ball color instantly
+    renderProjects(); // Re-render projects to apply tag color changes
+    updateThemeIcon(newTheme); // Update the icon
+}
+
+/**
+ * Loads the user's preferred theme from local storage or sets a default.
+ */
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+/**
+ * Updates the icon on the theme toggle button.
+ * @param {string} theme - The current theme ('dark' or 'light').
+ */
+function updateThemeIcon(theme) {
+    if (!themeToggleBtn) return;
+
+    const isDark = theme === 'dark';
+    // Moon for dark theme, Sun for light theme
+    const iconSvg = isDark
+        ? `<svg class="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 12.001 12.001 0 0019.354 14.354z"></path></svg>`
+        : `<svg class="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
+
+    themeToggleBtn.innerHTML = iconSvg;
+}
 
 
 // --- Simplified 3D Floating Ball Animation Logic (using Three.js) ---
@@ -47,13 +126,16 @@ let animationFrameId = null;
 function initBallObjects() {
     // Check if THREE is defined (loaded from CDN)
     if (typeof THREE === 'undefined') {
-        console.error("Three.js not loaded. Skipping 3D initialization.");
         return;
     }
+
+    // Get the initial color from CSS variables (defaults to dark theme color)
+    const initialColor = getThreeJsColorHex();
+
     // 1. Translucent Ball Shell (Wireframe structure)
     const shellGeometry = new THREE.SphereGeometry(BALL_RADIUS * 0.95, 24, 24);
     const shellMaterial = new THREE.MeshBasicMaterial({
-        color: 0x3B82F6,
+        color: initialColor,
         transparent: true,
         opacity: 0.15,
         wireframe: true
@@ -61,10 +143,10 @@ function initBallObjects() {
     ballMesh = new THREE.Mesh(shellGeometry, shellMaterial);
     scene.add(ballMesh);
 
-    // 2. Particle System (The blue covering)
+    // 2. Particle System (The covering)
     const particleGeometry = new THREE.SphereGeometry(BALL_RADIUS, 32, 32);
     const particleMaterial = new THREE.PointsMaterial({
-        color: 0x3B82F6,
+        color: initialColor,
         size: PARTICLE_SIZE,
         sizeAttenuation: true,
         transparent: true,
@@ -98,7 +180,14 @@ function animateBall() {
  */
 function setupBallAnimation() {
     const canvas = document.getElementById(CANVAS_ID);
-    if (!canvas || typeof THREE === 'undefined') return;
+    if (!canvas || typeof THREE === 'undefined') {
+         return;
+    }
+
+    // Ensure canvas has dimensions
+    const size = 250;
+    canvas.width = size;
+    canvas.height = size;
 
     const width = canvas.width;
     const height = canvas.height;
@@ -118,10 +207,8 @@ function setupBallAnimation() {
     // Initialize the 3D objects
     initBallObjects();
 
-    // Start the animation loop when the window is loaded
-    window.onload = function () {
-        animateBall();
-    }
+    // Start the animation loop
+    animateBall();
 }
 
 
@@ -153,6 +240,7 @@ function handleScroll() {
 
 /**
  * Renders the projects for the current page.
+ * NOTE: Tailwind classes for color/bg are dynamically determined based on the current theme.
  */
 function renderProjects() {
     const startIndex = (currentPage - 1) * PROJECTS_PER_PAGE;
@@ -162,17 +250,36 @@ function renderProjects() {
     // 1. Clear previous projects
     projectsGrid.innerHTML = '';
 
+    // Determine color classes based on current theme
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+
+    // Dynamic classes based on theme switch for project cards
+    const tagBgClass = isDark ? 'bg-gray-700 text-blue-300' : 'bg-red-100 text-red-600';
+    const linkColorClass = isDark ? 'text-blue-400 hover:text-blue-300' : 'text-red-500 hover:text-red-400';
+    const cardAccentClass = isDark ? 'border-blue-500' : 'border-red-500';
+    const cardBaseClass = isDark ? 'bg-gray-800' : 'bg-white';
+    const cardTextColor = isDark ? 'text-white' : 'text-gray-900';
+    const cardDescriptionColor = isDark ? 'text-gray-400' : 'text-gray-600';
+
+
     // 2. Render new projects
     projectsToRender.forEach((project, index) => {
         const projectCard = document.createElement('div');
-        projectCard.className = 'project-card bg-gray-800 p-6 rounded-xl shadow-2xl border-t-4 border-blue-500 hover:shadow-blue-900/70 transition-colors-shadow duration-500';
+        // Using dynamic classes for themed components
+        projectCard.className = `project-card p-6 rounded-xl shadow-2xl border-t-4 transition-colors-shadow duration-500 ${cardBaseClass} ${cardAccentClass}`;
+
+        // Add dynamic hover shadow based on theme
+        projectCard.style.setProperty('box-shadow', `0 20px 25px -5px var(--color-card-shadow)`);
+
         projectCard.innerHTML = `
-            <h3 class="text-2xl font-bold text-white mb-2">${project.title}</h3>
-            <p class="text-gray-400 mb-4">${project.description}</p>
+            <h3 class="text-2xl font-bold mb-2 ${cardTextColor}">
+                ${project.title}
+            </h3>
+            <p class="text-sm ${cardDescriptionColor} mb-4">${project.description}</p>
             <div class="flex flex-wrap gap-2 mb-4">
-                ${project.tags.map(tag => `<span class="px-3 py-1 text-xs font-semibold bg-gray-700 text-blue-300 rounded-full">${tag}</span>`).join('')}
+                ${project.tags.map(tag => `<span class="px-3 py-1 text-xs font-semibold rounded-full ${tagBgClass}">${tag}</span>`).join('')}
             </div>
-            <a href="${project.url}" class="text-blue-400 hover:text-blue-300 font-medium inline-flex items-center transition-colors">
+            <a href="${project.url}" class="font-medium inline-flex items-center transition-colors ${linkColorClass}">
                 View Details
                 <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
             </a>
@@ -191,6 +298,7 @@ function renderProjects() {
     prevBtn.disabled = currentPage === 1;
     nextBtn.disabled = currentPage === totalPages;
 }
+
 
 /**
  * Handles the next page click.
@@ -216,7 +324,10 @@ function prevPage() {
 // --- Event Listeners and Initialization ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Setup the 3D floating animation
+    // 0. Load Theme Preference
+    loadTheme();
+
+    // 1. Setup the 3D floating animation (restored)
     setupBallAnimation();
 
     // Set current year in footer
@@ -238,6 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => { document.getElementById('hero-title').style.transform = 'translateX(0)'; document.getElementById('hero-title').style.opacity = '1'; }, 300);
             setTimeout(() => { document.getElementById('hero-paragraph').style.transform = 'translateY(0)'; document.getElementById('hero-paragraph').style.opacity = '1'; }, 500);
             setTimeout(() => { document.getElementById('hero-button').style.transform = 'scale(1)'; document.getElementById('hero-button').style.opacity = '1'; }, 700);
+
+            // Ensure ball color is correct after theme load
+            updateBallColor();
         }
     });
 
@@ -248,18 +362,28 @@ document.addEventListener('DOMContentLoaded', () => {
     prevBtn.addEventListener('click', prevPage);
     nextBtn.addEventListener('click', nextPage);
 
-    // 4. Contact Form Submission (Mock)
-    const contactForm = document.querySelector('#contact form');
-    contactForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        // Simulate form submission success
-        contactForm.reset();
-        document.getElementById('contact-message').classList.remove('hidden');
-        setTimeout(() => {
-            document.getElementById('contact-message').classList.add('hidden');
-        }, 4000);
-    });
+    // 4. Theme Toggle Handler (New)
+    if(themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', toggleTheme);
+    }
 
-    // 5. Scroll Event Handler for Header
+    // 5. Contact Form Submission (Mock)
+    const contactForm = document.querySelector('#contact form');
+    if (contactForm) {
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            // Simulate form submission success
+            contactForm.reset();
+            const contactMessage = document.getElementById('contact-message');
+            if(contactMessage) {
+                 contactMessage.classList.remove('hidden');
+                 setTimeout(() => {
+                    contactMessage.classList.add('hidden');
+                }, 4000);
+            }
+        });
+    }
+
+    // 6. Scroll Event Handler for Header
     window.addEventListener('scroll', handleScroll);
 });
