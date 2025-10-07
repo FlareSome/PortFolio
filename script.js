@@ -1,389 +1,227 @@
-// --- Configuration and Data (Existing Portfolio Logic) ---
-const PROJECTS_PER_PAGE = 6;
-let currentPage = 1;
+// --- UTILITIES ---
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;','\'':'&#39;'}[m]; });
+}
 
-const projectsData = [
-    { id: 1, title: "FinTech Dashboard", description: "A high-performance trading dashboard built with React and D3.js for real-time data visualization.", tags: ["React", "TypeScript", "D3.js"], url: "#" },
-    { id: 2, title: "E-Commerce Microservices", description: "Backend infrastructure for a scalable e-commerce platform using Node.js, Express, and PostgreSQL.", tags: ["Node.js", "Microservices", "PostgreSQL"], url: "#" },
-    { id: 3, title: "AI-Powered Content Generator", description: "A Next.js application leveraging external LLMs to generate structured marketing copy for clients.", tags: ["Next.js", "AI/ML", "API Integration"], url: "#" },
-    { id: 4, title: "Serverless Analytics Platform", description: "Deployed on Google Cloud Functions, this platform handles millions of events daily with minimal cost.", tags: ["GCP", "Serverless", "BigQuery"], url: "#" },
-    { id: 5, title: "Real-Time Chat App", description: "A WebSocket-based communication tool with secure authentication and persistent message history.", tags: ["WebSockets", "Vue.js", "Go"], url: "#" },
-    { id: 6, title: "Design System Library", description: "Development and documentation of a reusable component library for consistent brand presence across all products.", tags: ["Storybook", "Tailwind CSS", "React"], url: "#" },
-    { id: 7, title: "IoT Data Visualization", description: "Visualization of data streams from thousands of IoT devices using a custom optimized canvas renderer.", tags: ["Canvas", "JS", "Data Streaming"], url: "#" },
-    { id: 8, title: "Personal Blogging Engine", description: "A simple, fast static site generator (SSG) tailored for technical writing and developer tutorials.", tags: ["Static Generation", "Markdown", "CI/CD"], url: "#" },
-    { id: 9, title: "Mobile App Prototype (PWA)", description: "A Progressive Web Application (PWA) for field service management with offline capabilities.", tags: ["PWA", "IndexedDB", "Offline First"], url: "#" },
-    { id: 10, title: "Legacy System Migration", description: "Successful migration of a monolithic application from Ruby on Rails to a modern Typescript/Node stack.", tags: ["Migration", "Architecture", "Refactoring"], url: "#" },
-    { id: 11, title: "Blockchain Integration POC", description: "Proof of concept for integrating supply chain logistics with a private blockchain ledger.", tags: ["Blockchain", "Web3", "Solidity"], url: "#" },
-    { id: 12, title: "Automated Testing Suite", description: "Implementation of end-to-end and unit tests using Cypress and Jest, boosting coverage to 95%.", tags: ["Cypress", "Jest", "TDD"], url: "#" },
-    { id: 13, title: "VR E-learning Module", description: "Development of an interactive 3D learning module using Three.js and WebGL.", tags: ["Three.js", "WebGL", "Education"], url: "#" },
+// --- MOCK DATA ---
+const PROJECTS = [
+    { id: 1, title: 'Saas Analytics Dashboard', short: 'Real-time data visualization platform built with D3 and React.', tech: ['React', 'D3.js', 'Node.js'] },
+    { id: 2, title: 'GraphQL E-commerce API', short: 'Headless API using Apollo Server and PostgreSQL for high-volume transactions.', tech: ['GraphQL', 'Node.js', 'PostgreSQL', 'Docker'] },
+    { id: 3, title: 'Component Library & Design System', short: 'A centralized, accessible component library built with TypeScript and Tailwind CSS.', tech: ['TypeScript', 'Tailwind CSS', 'Storybook'] },
+    { id: 4, title: 'Open-Source Project Tracker', short: 'A Kanban board for tracking community contributions with a REST API.', tech: ['React', 'Express', 'MongoDB'] },
+    { id: 5, title: 'AI-Powered Content Generator', short: 'Integrated Google Gemini API for structured, creative content generation.', tech: ['Gemini API', 'React', 'Firebase'] },
+    { id: 6, title: 'Real-time Chat Application', short: 'A WebSocket-based chat service with public and private rooms.', tech: ['Node.js', 'Socket.IO', 'Redis'] },
+    { id: 7, title: 'Serverless Portfolio Host', short: 'Personal portfolio deployed on a fast, cost-effective serverless architecture.', tech: ['Next.js', 'Vercel', 'CI/CD'] },
+    { id: 8, title: 'Blockchain Explorer Interface', short: 'A simple UI to query and visualize data from a testnet blockchain.', tech: ['React', 'Web3.js', 'Ethers'] },
+    { id: 9, title: 'Automated Testing Suite', short: 'Implemented end-to-end testing across 100+ critical paths using Cypress.', tech: ['Cypress', 'Jest', 'CI/CD'] },
 ];
 
-const totalPages = Math.ceil(projectsData.length / PROJECTS_PER_PAGE);
+// --- DOM ELEMENTS & STATE ---
+let filtered = [...PROJECTS];
 
-// --- DOM Elements ---
-const introLoader = document.getElementById('intro-loader');
-const appContainer = document.getElementById('app-container');
-const projectsGrid = document.getElementById('projects-grid');
-const prevBtn = document.getElementById('prev-btn');
-const nextBtn = document.getElementById('next-btn');
-const pageInfo = document.getElementById('page-info');
-const mainHeader = document.getElementById('main-header');
-const themeToggleBtn = document.getElementById('theme-toggle'); // New DOM element
+const projectsGrid = document.getElementById('projectsGrid');
+const projectRange = document.getElementById('projectRange');
+const searchInput = document.getElementById('search');
+const themeToggle = document.getElementById('themeToggle');
+const themeIcon = document.getElementById('themeIcon');
+const yearSpan = document.getElementById('year');
+const experienceYearsSpan = document.getElementById('experienceYears');
 
-// --- Theme Management Functions ---
+// --- MODAL FUNCTIONS (Replaces alert()) ---
+const modal = document.getElementById('customModal');
+const modalTitle = document.getElementById('modalTitle');
+const modalMessage = document.getElementById('modalMessage');
 
-/**
- * Reads the --three-js-color CSS variable and converts it to a Three.js compatible hex number.
- * @returns {number} The hex color code.
- */
-function getThreeJsColorHex() {
-    // Get the computed value of the CSS variable
-    const colorStr = getComputedStyle(document.body).getPropertyValue('--three-js-color').trim();
-    // The variable is stored as '0xRRGGBB', so we need to parse it.
-    if (colorStr.startsWith('0x')) {
-        return parseInt(colorStr, 16);
-    }
-    // Fallback to blue if something goes wrong
-    return 0x3B82F6;
-}
-
-/**
- * Updates the color of the 3D sphere to match the current theme.
- */
-function updateBallColor() {
-    // Check if THREE objects have been initialized
-    if (typeof THREE === 'undefined' || !ballMesh || !particleSystem) return;
-
-    const newColor = getThreeJsColorHex();
-
-    // Update shell (wireframe) color
-    if (ballMesh.material.color) {
-        // NOTE: Setting material needs to happen on the main thread
-        ballMesh.material.color.setHex(newColor);
-    }
-
-    // Update particle system color
-    if (particleSystem.material.color) {
-        particleSystem.material.color.setHex(newColor);
-    }
-}
-
-/**
- * Toggles the website theme between 'dark' and 'light'.
- */
-function toggleTheme() {
-    const currentTheme = document.body.getAttribute('data-theme') || 'dark';
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-    document.body.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme); // Save preference
-
-    updateBallColor(); // Update the 3D ball color instantly
-    renderProjects(); // Re-render projects to apply tag color changes
-    updateThemeIcon(newTheme); // Update the icon
-}
-
-/**
- * Loads the user's preferred theme from local storage or sets a default.
- */
-function loadTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'dark';
-    document.body.setAttribute('data-theme', savedTheme);
-    updateThemeIcon(savedTheme);
-}
-
-/**
- * Updates the icon on the theme toggle button.
- * @param {string} theme - The current theme ('dark' or 'light').
- */
-function updateThemeIcon(theme) {
-    if (!themeToggleBtn) return;
-
-    const isDark = theme === 'dark';
-    // Moon for dark theme, Sun for light theme
-    const iconSvg = isDark
-        ? `<svg class="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 12.001 12.001 0 0019.354 14.354z"></path></svg>`
-        : `<svg class="w-6 h-6" fill="currentColor" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>`;
-
-    themeToggleBtn.innerHTML = iconSvg;
-}
-
-
-// --- Simplified 3D Floating Ball Animation Logic (using Three.js) ---
-
-const CANVAS_ID = 'ballAnimationCanvas';
-const BALL_RADIUS = 100;
-const PARTICLE_SIZE = 3;
-
-let scene, camera, renderer;
-let ballMesh;
-let particleSystem;
-let animationFrameId = null;
-
-/**
- * Initializes the particle system and the translucent shell mesh.
- */
-function initBallObjects() {
-    // Check if THREE is defined (loaded from CDN)
-    if (typeof THREE === 'undefined') {
-        return;
-    }
-
-    // Get the initial color from CSS variables (defaults to dark theme color)
-    const initialColor = getThreeJsColorHex();
-
-    // 1. Translucent Ball Shell (Wireframe structure)
-    const shellGeometry = new THREE.SphereGeometry(BALL_RADIUS * 0.95, 24, 24);
-    const shellMaterial = new THREE.MeshBasicMaterial({
-        color: initialColor,
-        transparent: true,
-        opacity: 0.15,
-        wireframe: true
-    });
-    ballMesh = new THREE.Mesh(shellGeometry, shellMaterial);
-    scene.add(ballMesh);
-
-    // 2. Particle System (The covering)
-    const particleGeometry = new THREE.SphereGeometry(BALL_RADIUS, 32, 32);
-    const particleMaterial = new THREE.PointsMaterial({
-        color: initialColor,
-        size: PARTICLE_SIZE,
-        sizeAttenuation: true,
-        transparent: true,
-        opacity: 0.9,
-    });
-
-    particleSystem = new THREE.Points(particleGeometry, particleMaterial);
-    scene.add(particleSystem);
-}
-
-/**
- * The main animation loop for the Three.js scene.
- */
-function animateBall() {
-    if (typeof THREE === 'undefined' || !renderer) return;
-
-    animationFrameId = requestAnimationFrame(animateBall);
-
-    const time = Date.now() * 0.0005;
-
-    // 1. Floating & Rotation Motion
-    scene.rotation.y += 0.003;
-    scene.rotation.x = Math.sin(time * 0.1) * 0.1;
-
-    // 2. Render the scene
-    renderer.render(scene, camera);
-}
-
-/**
- * Sets up the Three.js environment.
- */
-function setupBallAnimation() {
-    const canvas = document.getElementById(CANVAS_ID);
-    if (!canvas || typeof THREE === 'undefined') {
-         return;
-    }
-
-    // Ensure canvas has dimensions
-    const size = 250;
-    canvas.width = size;
-    canvas.height = size;
-
-    const width = canvas.width;
-    const height = canvas.height;
-
-    // Scene
-    scene = new THREE.Scene();
-
-    // Camera
-    camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.z = 180;
-
-    // Renderer
-    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    renderer.setSize(width, height);
-    renderer.setClearColor(0x000000, 0); // Transparent background
-
-    // Initialize the 3D objects
-    initBallObjects();
-
-    // Start the animation loop
-    animateBall();
-}
-
-
-// --- Scroll Hide/Show Logic for Header ---
-let lastScrollY = 0;
-const scrollThreshold = 100;
-
-function handleScroll() {
-    const currentScrollY = window.scrollY;
-
-    if (currentScrollY > scrollThreshold) {
-        if (currentScrollY > lastScrollY) {
-            // Scrolling down: hide header
-            mainHeader.classList.add('header-hidden');
-        } else {
-            // Scrolling up: show header
-            mainHeader.classList.remove('header-hidden');
-        }
+function showMessageModal(title, message) {
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex', 'opacity-0');
+    // Use GSAP for animation if available
+    if (typeof gsap !== 'undefined') {
+        gsap.to(modal, { opacity: 1, duration: 0.3 });
+        gsap.fromTo(modal.firstElementChild, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' });
     } else {
-        // At the top of the page, always show the header
-        mainHeader.classList.remove('header-hidden');
+        modal.style.opacity = 1;
     }
-
-    lastScrollY = currentScrollY;
+    document.body.style.overflow = 'hidden';
 }
 
+function closeMessageModal() {
+    // Use GSAP for animation if available
+    if (typeof gsap !== 'undefined') {
+        gsap.to(modal.firstElementChild, { y: 10, opacity: 0, duration: 0.2, ease: 'power1.in' });
+        gsap.to(modal, { opacity: 0, duration: 0.3, onComplete: () => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+        }});
+    } else {
+        modal.classList.remove('flex');
+        modal.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+}
 
-// --- Core Functions (Pagination/Loaders) ---
+// --- PROJECT RENDERING & LOGIC (Horizontal Scroll) ---
 
-/**
- * Renders the projects for the current page.
- * NOTE: Tailwind classes for color/bg are dynamically determined based on the current theme.
- */
 function renderProjects() {
-    const startIndex = (currentPage - 1) * PROJECTS_PER_PAGE;
-    const endIndex = startIndex + PROJECTS_PER_PAGE;
-    const projectsToRender = projectsData.slice(startIndex, endIndex);
+  const visible = filtered;
 
-    // 1. Clear previous projects
-    projectsGrid.innerHTML = '';
+  // Update info texts
+  projectRange.textContent = `Showing all ${filtered.length} projects`;
 
-    // Determine color classes based on current theme
-    const isDark = document.body.getAttribute('data-theme') === 'dark';
+  projectsGrid.innerHTML = ''; // Clear
 
-    // Dynamic classes based on theme switch for project cards
-    const tagBgClass = isDark ? 'bg-gray-700 text-blue-300' : 'bg-red-100 text-red-600';
-    const linkColorClass = isDark ? 'text-blue-400 hover:text-blue-300' : 'text-red-500 hover:text-red-400';
-    const cardAccentClass = isDark ? 'border-blue-500' : 'border-red-500';
-    const cardBaseClass = isDark ? 'bg-gray-800' : 'bg-white';
-    const cardTextColor = isDark ? 'text-white' : 'text-gray-900';
-    const cardDescriptionColor = isDark ? 'text-gray-400' : 'text-gray-600';
+  visible.forEach((p, index) => {
+    const card = document.createElement('article');
+    // Classes for horizontal scrolling: flex-shrink-0, fixed width, snap-center
+    card.className = 'glass rounded-xl p-6 shadow-xl hover:shadow-2xl cursor-pointer focus-ring proj-card transition-all flex-shrink-0 w-80 sm:w-96 snap-center';
+    card.innerHTML = `
+      <div class="h-32 rounded-lg overflow-hidden bg-gradient-to-br from-indigo-500/5 to-transparent flex items-center justify-center border border-dashed border-slate-700/10 dark:border-slate-400/10">
+        <div class="text-sm text-slate-400">Demo Placeholder</div>
+      </div>
+      <h3 class="mt-4 text-xl font-bold text-slate-800 dark:text-slate-100">${escapeHtml(p.title)}</h3>
+      <p class="mt-1 text-sm text-slate-500">${escapeHtml(p.short)}</p>
+      <div class="mt-4 flex flex-wrap gap-2">${p.tech.map(t => `<span class="text-xs px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-400 font-medium">${escapeHtml(t)}</span>`).join('')}</div>
+      <div class="mt-6 flex gap-3">
+        <button class="flex-1 py-2 rounded-full border border-indigo-400/30 text-indigo-400 hover:bg-indigo-500/10 preview-btn transition-colors">Details</button>
+        <button onclick="showMessageModal('Code Repository','This link would open the public GitHub repository for ${escapeHtml(p.title)}. (Placeholder)')" class="py-2 px-4 rounded-full bg-indigo-600 text-white code-btn shadow-md shadow-indigo-500/30 hover:bg-indigo-700 transition-colors">Code</button>
+      </div>
+    `;
+    projectsGrid.appendChild(card);
 
+    // Motion: fade-in and slight rise (Only if GSAP is available)
+    if (typeof gsap !== 'undefined') {
+        gsap.from(card, { opacity: 0, y: 16, duration: 0.5, ease: "power2.out", delay: 0.04 * index });
+    }
+  });
 
-    // 2. Render new projects
-    projectsToRender.forEach((project, index) => {
-        const projectCard = document.createElement('div');
-        // Using dynamic classes for themed components
-        projectCard.className = `project-card p-6 rounded-xl shadow-2xl border-t-4 transition-colors-shadow duration-500 ${cardBaseClass} ${cardAccentClass}`;
-
-        // Add dynamic hover shadow based on theme
-        projectCard.style.setProperty('box-shadow', `0 20px 25px -5px var(--color-card-shadow)`);
-
-        projectCard.innerHTML = `
-            <h3 class="text-2xl font-bold mb-2 ${cardTextColor}">
-                ${project.title}
-            </h3>
-            <p class="text-sm ${cardDescriptionColor} mb-4">${project.description}</p>
-            <div class="flex flex-wrap gap-2 mb-4">
-                ${project.tags.map(tag => `<span class="px-3 py-1 text-xs font-semibold rounded-full ${tagBgClass}">${tag}</span>`).join('')}
-            </div>
-            <a href="${project.url}" class="font-medium inline-flex items-center transition-colors ${linkColorClass}">
-                View Details
-                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            </a>
-        `;
-
-        // Add a small delay for staggered appearance
-        setTimeout(() => {
-            projectCard.classList.add('is-visible');
-        }, index * 100);
-
-        projectsGrid.appendChild(projectCard);
-    });
-
-    // 3. Update pagination controls
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages;
+  // Attach detail handlers (using the new modal)
+  document.querySelectorAll('.preview-btn').forEach((b, i) => {
+    b.onclick = () => showMessageModal(visible[i].title, 'Full project details and live demo would be available here. This modal serves as a professional placeholder.');
+  });
 }
 
-
-/**
- * Handles the next page click.
- */
-function nextPage() {
-    if (currentPage < totalPages) {
-        currentPage++;
-        renderProjects();
-    }
-}
-
-/**
- * Handles the previous page click.
- */
-function prevPage() {
-    if (currentPage > 1) {
-        currentPage--;
-        renderProjects();
-    }
-}
-
-
-// --- Event Listeners and Initialization ---
-
-document.addEventListener('DOMContentLoaded', () => {
-    // 0. Load Theme Preference
-    loadTheme();
-
-    // 1. Setup the 3D floating animation (restored)
-    setupBallAnimation();
-
-    // Set current year in footer
-    document.getElementById('current-year').textContent = new Date().getFullYear();
-
-    // Run Intro Animation
-    setTimeout(() => {
-        introLoader.classList.add('intro-hidden');
-    }, 1500);
-
-    // Hide the loader and show main content after transition
-    introLoader.addEventListener('transitionend', () => {
-        if (introLoader.classList.contains('intro-hidden')) {
-            introLoader.style.display = 'none';
-            appContainer.style.opacity = '1';
-
-            // Trigger Hero Section animations
-            setTimeout(() => { document.getElementById('hero-subtitle').style.transform = 'translateY(0)'; document.getElementById('hero-subtitle').style.opacity = '1'; }, 100);
-            setTimeout(() => { document.getElementById('hero-title').style.transform = 'translateX(0)'; document.getElementById('hero-title').style.opacity = '1'; }, 300);
-            setTimeout(() => { document.getElementById('hero-paragraph').style.transform = 'translateY(0)'; document.getElementById('hero-paragraph').style.opacity = '1'; }, 500);
-            setTimeout(() => { document.getElementById('hero-button').style.transform = 'scale(1)'; document.getElementById('hero-button').style.opacity = '1'; }, 700);
-
-            // Ensure ball color is correct after theme load
-            updateBallColor();
-        }
-    });
-
-    // 2. Initialize Pagination
-    renderProjects();
-
-    // 3. Pagination Button Handlers
-    prevBtn.addEventListener('click', prevPage);
-    nextBtn.addEventListener('click', nextPage);
-
-    // 4. Theme Toggle Handler (New)
-    if(themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', toggleTheme);
-    }
-
-    // 5. Contact Form Submission (Mock)
-    const contactForm = document.querySelector('#contact form');
-    if (contactForm) {
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Simulate form submission success
-            contactForm.reset();
-            const contactMessage = document.getElementById('contact-message');
-            if(contactMessage) {
-                 contactMessage.classList.remove('hidden');
-                 setTimeout(() => {
-                    contactMessage.classList.add('hidden');
-                }, 4000);
-            }
-        });
-    }
-
-    // 6. Scroll Event Handler for Header
-    window.addEventListener('scroll', handleScroll);
+// Search/filtering
+searchInput.addEventListener('input', e => {
+  const q = e.target.value.trim().toLowerCase();
+  filtered = PROJECTS.filter(p =>
+    p.title.toLowerCase().includes(q) ||
+    p.short.toLowerCase().includes(q) ||
+    p.tech.some(t => t.toLowerCase().includes(q))
+  );
+  renderProjects();
 });
+
+
+// --- THEME TOGGLE (with professional SVG) ---
+const SUN_ICON = '<path d="M12 12c-3.313 0-6-2.687-6-6s2.687-6 6-6 6 2.687 6 6-2.687 6-6 6zm10 0h-2c0-5.514-4.486-10-10-10v2c4.418 0 8 3.582 8 8zm-22 0h2c0-5.514-4.486-10 10-10v2c-4.418 0-8 3.582-8 8z"/><path d="M12 2v2h-1v-2h1zm4 10h2v-1h-2v1zm-8 0h-2v-1h2v1zm3 8h2v-1h-2v1zM6 16l-1.414 1.414.707.707 1.414-1.414-.707-.707zm10 0l1.414 1.414-.707.707-1.414-1.414.707-.707zM17 6l1.414-1.414-.707-.707-1.414 1.414.707.707zM7 6l-1.414-1.414-.707.707 1.414 1.414.707-.707z"/>';
+const MOON_ICON = '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>'; // Lucide Moon
+
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.documentElement.classList.remove('dark');
+    themeIcon.innerHTML = SUN_ICON;
+  } else {
+    document.documentElement.classList.add('dark');
+    themeIcon.innerHTML = MOON_ICON;
+  }
+}
+
+// Initial theme setup (load from localStorage or default to dark)
+const initialTheme = (localStorage.getItem('theme') || 'dark');
+applyTheme(initialTheme);
+
+themeToggle.addEventListener('click', () => {
+  const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+  applyTheme(newTheme);
+  localStorage.setItem('theme', newTheme);
+  // subtle animation on toggle
+  if (typeof gsap !== 'undefined') {
+    gsap.from(themeToggle, { scale: 0.8, duration: 0.25, ease: "back.out(1.7)" });
+  }
+});
+
+// Contact form submission (replaces alert with modal)
+document.getElementById('sendBtn').addEventListener('click', () => {
+  const name = document.getElementById('nameInput').value.trim();
+  const email = document.getElementById('emailInput').value.trim();
+
+  const form = document.getElementById('contactForm');
+  if (!form.checkValidity()) {
+      showMessageModal('Validation Error', 'Please fill out all required fields (Name, Email, Message) correctly.');
+      return;
+  }
+
+  // Simulate sending logic (replace with your real email API/integration)
+  if (typeof gsap !== 'undefined') {
+    gsap.to('#sendBtn', { scale: 0.98, duration: 0.1, yoyo: true, repeat: 1, onComplete: () => {
+        showMessageModal('Message Sent!', `Thank you for reaching out, ${name}. I have received your message and will respond to ${email} shortly.`);
+        form.reset();
+    }});
+  } else {
+    showMessageModal('Message Sent!', `Thank you for reaching out, ${name}. I have received your message and will respond to ${email} shortly.`);
+    form.reset();
+  }
+});
+
+// --- INITIALIZATION ---
+// NOTE: This runs on window load to ensure GSAP is defined before using it for initial animations.
+window.addEventListener('load', () => {
+
+  // Set current year and experience years
+  if (yearSpan) yearSpan.textContent = new Date().getFullYear();
+  if (experienceYearsSpan) {
+    const startYear = 2020;
+    const currentYear = new Date().getFullYear();
+    const years = Math.max(1, currentYear - startYear);
+    experienceYearsSpan.textContent = years;
+  }
+
+  // 1. Render projects
+  renderProjects();
+
+  // 2. Smooth Scrolling for Navigation Links
+  // This intercepts clicks on links starting with '#' and implements smooth scroll behavior
+  document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href');
+      const targetElement = document.querySelector(targetId);
+
+      if (targetElement) {
+        // Use smooth scrolling to bring the element into view
+        targetElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start' // Scroll to the top of the section
+        });
+      }
+    });
+  });
+
+  // 3. Initial GSAP Animations
+  if (typeof gsap !== 'undefined') {
+    // Check if ScrollTrigger is loaded (optional but good practice)
+    if (typeof ScrollTrigger !== 'undefined') {
+        gsap.registerPlugin(ScrollTrigger);
+    }
+
+    // Check if reduced motion is preferred before running animations
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (!media.matches) {
+        gsap.from('header', { y: -16, opacity: 0, duration: 0.6, ease: 'power2.out' });
+        gsap.from('#hero h1', { y: 20, opacity: 0, duration: 0.8, delay: 0.1, ease: 'power3.out' });
+        gsap.from('#hero p', { y: 10, opacity: 0, duration: 0.6, delay: 0.2 });
+        gsap.from('#hero .glass', { scale: 0.95, opacity: 0, duration: 0.6, delay: 0.3, stagger: 0.1 });
+    }
+  }
+});
+
+// If GSAP is defined globally (e.g., loaded directly without defer), ensure the clear still works
+if (typeof gsap !== 'undefined') {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (media.matches) {
+      gsap.globalTimeline.clear();
+    }
+}

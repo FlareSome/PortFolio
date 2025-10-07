@@ -1,126 +1,63 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
-
-/* --- Define Color Variables (Dark Mode Default) --- */
+/* Custom CSS Variables for Glassmorphism & Neumorphism */
 :root {
-    --color-bg: #111827;
-    --color-bg-secondary: #1F2937; /* Used for Header/Cards/Footer */
-    --color-text: #E5E7EB;
-    --color-text-secondary: #9CA3AF; /* Gray-400 */
-    --color-accent: #3B82F6; /* Blue Accent */
-    --color-accent-rgb: 59, 130, 246; /* RGB for hover effects */
-    --color-card-shadow: rgba(59, 130, 246, 0.2);
-    --color-input-bg: #374151; /* Gray-700 */
-    --color-input-border: #4B5563; /* Gray-600 */
-    --color-button-hover-bg: #2563EB; /* Blue-700 */
-    --three-js-color: 0x3B82F6; /* Default Blue Hex for Three.js (used in script.js) */
+  /* Light Mode */
+  --bg-primary: #ffffff;
+  --text-primary: #1e293b; /* slate-800 */
+  --glass-bg: rgba(0, 0, 0, 0.03);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --neum-shadow1: 4px 6px 12px rgba(2, 6, 23, 0.04);
+  --neum-shadow2: -1px -1px 3px rgba(255, 255, 255, 0.1);
+}
+.dark {
+  /* Dark Mode (slightly adjusted for depth) */
+  --bg-primary: #0f172a; /* slate-900 */
+  --text-primary: #e2e8f0; /* slate-200 */
+  --glass-bg: rgba(255, 255, 255, 0.03);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --neum-shadow1: 8px 12px 24px rgba(0, 0, 0, 0.2);
+  --neum-shadow2: -4px -4px 8px rgba(255, 255, 255, 0.01);
 }
 
-/* --- Light Mode Overrides --- */
-body[data-theme='light'] {
-    --color-bg: #FFFFFF;
-    --color-bg-secondary: #F3F4F6; /* Off-white for Header/Cards/Footer */
-    --color-text: #1F2937;
-    --color-text-secondary: #6B7280; /* Gray-600 */
-    --color-accent: #EF4444; /* Red/Fire Accent */
-    --color-accent-rgb: 239, 68, 68;
-    --color-card-shadow: rgba(239, 68, 68, 0.15);
-    --color-input-bg: #FFFFFF;
-    --color-input-border: #D1D5DB; /* Gray-300 */
-    --color-button-hover-bg: #DC2626; /* Red-700 */
-    --three-js-color: 0xEF4444; /* Light Red Hex for Three.js (used in script.js) */
+/* Apply custom variables (Glassmorphism) */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px) saturate(1.15);
+  border: 1px solid var(--glass-border);
+}
+/* Apply custom variables (Neumorphism) */
+.neum {
+  box-shadow: var(--neum-shadow1), var(--neum-shadow2);
+}
+/* Custom focus ring for accessibility */
+.focus-ring:focus {
+  outline: 3px solid rgba(99,102,241,0.25);
+  outline-offset: 4px;
 }
 
+/* Smooth page-wide transitions for a professional feel */
+* {
+  transition: color .35s ease,
+              background-color .35s ease,
+              box-shadow .35s ease,
+              border-color .35s ease,
+              transform .2s ease;
+}
+
+/* Decorative gradient for hero background */
+.hero-grad {
+  background: radial-gradient(1200px 400px at 10% 0%, rgba(99,102,241,0.1), transparent 18%),
+              radial-gradient(900px 300px at 90% 40%, rgba(139,92,246,0.06), transparent 12%);
+}
+
+/* Project cards hover effect */
+.proj-card:hover {
+  transform: translateY(-6px) scale(1.005);
+  box-shadow: 0 16px 30px rgba(99, 102, 241, 0.1); /* Subtle lift color */
+}
+
+/* Base body styling */
 body {
-    font-family: 'Inter', sans-serif;
-    background-color: var(--color-bg);
-    color: var(--color-text);
-    transition: background-color 0.5s, color 0.5s; /* Smooth theme transition */
-}
-
-/* Custom CSS for the introductory animation and smooth scrolling */
-#intro-loader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--color-bg-secondary);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    opacity: 1;
-    transition: opacity 1s ease-in-out, transform 1s ease-in-out, background-color 0.5s;
-}
-.intro-hidden {
-    opacity: 0 !important;
-    transform: translateY(-100%);
-}
-.loader-bar {
-    width: 80px;
-    height: 4px;
-    background-color: #4B5563;
-    border-radius: 9999px;
-    overflow: hidden;
-}
-.loader-progress {
-    height: 100%;
-    width: 0%;
-    background-color: var(--color-accent);
-    animation: loading 2s infinite;
-}
-@keyframes loading {
-    0% { width: 0%; transform: translateX(-100%); }
-    50% { width: 100%; transform: translateX(0%); }
-    100% { width: 0%; transform: translateX(100%); }
-}
-
-html {
-    scroll-behavior: smooth;
-}
-.transition-colors-shadow {
-    transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-}
-.project-card {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-}
-.project-card.is-visible {
-    opacity: 1;
-    transform: translateY(0);
-}
-.nav-link:hover {
-    color: var(--color-accent);
-}
-
-.header-hidden {
-    transform: translateY(-100%);
-}
-
-#ballAnimationCanvas {
-    pointer-events: none;
-    transition: filter 0.5s ease;
-}
-
-/* Theme Toggle Button Style */
-#theme-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    background-color: transparent;
-    border: none;
-    cursor: pointer;
-    color: var(--color-text);
-    transition: color 0.3s, background-color 0.3s;
-    border-radius: 50%;
-}
-#theme-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-}
-body[data-theme='light'] #theme-toggle:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
 }
